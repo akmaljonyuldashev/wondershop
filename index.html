@@ -1,548 +1,231 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Wondershop</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Wondershop Catalog</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    :root {
-      --bg: #f7f4ef;
-      --card: #ffffff;
-      --text: #171717;
-      --muted: #777;
-      --accent: #111;
-      --line: #e7e0d6;
-      --shadow: 0 10px 30px rgba(0,0,0,.08);
-      --radius: 22px;
+    :root{
+      --bg:#f6f2ec;--card:#fff;--text:#151515;--muted:#777;--line:#e7dfd3;
+      --black:#111;--radius:22px;--shadow:0 12px 36px rgba(0,0,0,.08);
     }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: Inter, Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
-
-    .app {
-      max-width: 760px;
-      margin: 0 auto;
-      padding: 20px 16px 40px;
-    }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-
-    .brand {
-      font-size: 26px;
-      font-weight: 900;
-      letter-spacing: .08em;
-    }
-
-    .subtitle {
-      color: var(--muted);
-      font-size: 14px;
-      margin-top: 4px;
-    }
-
-    .back-btn {
-      border: 1px solid var(--line);
-      background: var(--card);
-      border-radius: 999px;
-      padding: 10px 14px;
-      font-size: 14px;
-      cursor: pointer;
-      display: none;
-    }
-
-    .back-btn.show {
-      display: inline-flex;
-    }
-
-    .screen-title {
-      font-size: 22px;
-      font-weight: 800;
-      margin: 20px 0 12px;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    .card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 18px;
-      box-shadow: var(--shadow);
-      cursor: pointer;
-      transition: .18s ease;
-      min-height: 110px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .card:active {
-      transform: scale(.98);
-    }
-
-    .emoji {
-      font-size: 30px;
-      margin-bottom: 14px;
-    }
-
-    .card-title {
-      font-size: 17px;
-      font-weight: 800;
-      line-height: 1.2;
-    }
-
-    .card-note {
-      color: var(--muted);
-      font-size: 13px;
-      margin-top: 8px;
-    }
-
-    .products {
-      display: grid;
-      gap: 14px;
-    }
-
-    .product {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      overflow: hidden;
-      box-shadow: var(--shadow);
-    }
-
-    .product-img {
-      width: 100%;
-      height: 210px;
-      background:
-        radial-gradient(circle at 25% 25%, rgba(255,255,255,.95), rgba(255,255,255,0) 34%),
-        linear-gradient(135deg, #111, #444);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: 900;
-      font-size: 28px;
-      letter-spacing: .08em;
-    }
-
-    .product-body {
-      padding: 16px;
-    }
-
-    .product-title {
-      font-size: 18px;
-      font-weight: 850;
-      margin-bottom: 8px;
-    }
-
-    .product-meta {
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.45;
-      margin-bottom: 12px;
-    }
-
-    .price {
-      font-size: 18px;
-      font-weight: 900;
-      margin-bottom: 14px;
-    }
-
-    .choose-btn {
-      width: 100%;
-      border: none;
-      background: var(--accent);
-      color: white;
-      padding: 14px 16px;
-      border-radius: 16px;
-      font-size: 15px;
-      font-weight: 800;
-      cursor: pointer;
-    }
-
-    .empty {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 20px;
-      color: var(--muted);
-      text-align: center;
-    }
-
-    @media (max-width: 420px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-
-      .brand {
-        font-size: 22px;
-      }
-
-      .product-img {
-        height: 180px;
-      }
-    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    .app{max-width:820px;margin:0 auto;padding:18px 14px 36px}
+    .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+    .logo{font-size:24px;font-weight:950;letter-spacing:.08em}
+    .tag{font-size:13px;color:var(--muted);margin-top:3px}
+    .back{display:none;border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 13px;font-weight:800;cursor:pointer}
+    .back.show{display:block}
+    h1{font-size:23px;margin:18px 0 10px}
+    .hint{font-size:14px;color:var(--muted);line-height:1.45;margin:0 0 14px}
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .tile{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:17px;min-height:108px;cursor:pointer;transition:.15s ease}
+    .tile:active,.product:active{transform:scale(.985)}
+    .emoji{font-size:31px;margin-bottom:12px}
+    .tile-title{font-weight:950;font-size:17px;line-height:1.15}
+    .tile-note{font-size:13px;color:var(--muted);margin-top:7px;line-height:1.35}
+    .products{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+    .product{background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);overflow:hidden;cursor:pointer}
+    .imgbox{height:210px;background:#eee8df;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .imgbox img{width:100%;height:100%;object-fit:contain;display:block}
+    .noimg{font-weight:950;color:#999;letter-spacing:.08em}
+    .body{padding:14px}
+    .ptitle{font-size:16px;font-weight:950;line-height:1.2;min-height:38px}
+    .meta{font-size:12px;color:var(--muted);margin:8px 0;line-height:1.35}
+    .price{font-size:17px;font-weight:950;margin:10px 0}
+    .btn{border:0;width:100%;border-radius:15px;background:#111;color:#fff;padding:13px 15px;font-weight:900;font-size:14px;cursor:pointer}
+    .secondary{background:#fff;color:#111;border:1px solid #111;margin-top:9px}
+    .detail{background:#fff;border:1px solid var(--line);border-radius:28px;box-shadow:var(--shadow);overflow:hidden}
+    .detail-img{width:100%;max-height:440px;object-fit:contain;background:#eee8df;display:block}
+    .detail-body{padding:18px}
+    .detail-title{font-size:24px;font-weight:950;margin-bottom:8px;line-height:1.15}
+    .chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 14px}
+    .chip{border:1px solid var(--line);background:#faf7f2;border-radius:999px;padding:8px 11px;font-size:12px;font-weight:800}
+    .color-dot{width:12px;height:12px;border-radius:50%;display:inline-block;border:1px solid #bbb;margin-right:5px;vertical-align:-1px}
+    .search{width:100%;border:1px solid var(--line);background:#fff;border-radius:16px;padding:13px 15px;font-size:15px;margin:0 0 14px;outline:none}
+    .empty{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:20px;text-align:center;color:var(--muted);line-height:1.5}
+    .pager{display:flex;gap:10px;margin:16px 0 0}
+    .pager button{flex:1}
+    @media(max-width:520px){.grid,.products{grid-template-columns:1fr}.imgbox{height:220px}.logo{font-size:21px}}
   </style>
 </head>
 <body>
-  <div class="app">
-    <div class="header">
-      <div>
-        <div class="brand">WONDERSHOP</div>
-        <div class="subtitle">Одежда и товары с принтами</div>
-      </div>
-      <button class="back-btn" id="backBtn">← Назад</button>
-    </div>
-
-    <main id="content"></main>
+<div class="app">
+  <div class="top">
+    <div><div class="logo">WONDERSHOP</div><div class="tag">Одежда и товары с принтами</div></div>
+    <button class="back" id="backBtn">← Назад</button>
   </div>
+  <main id="content"><div class="empty">Загрузка каталога...</div></main>
+</div>
+<script>
+const tg = window.Telegram?.WebApp;
+if (tg){tg.ready();tg.expand();}
 
-  <script>
-    const tg = window.Telegram?.WebApp;
-    if (tg) {
-      tg.ready();
-      tg.expand();
-    }
+let catalog = [];
+let products = [];
+const content = document.getElementById("content");
+const backBtn = document.getElementById("backBtn");
+const stack = [];
+let currentPage = 1;
+const perPage = 24;
 
-    const catalog = [
-      {
-        id: "men",
-        title: "Мужская одежда",
-        emoji: "👕",
-        note: "Футболки, майки, худи",
-        subcategories: [
-          { id: "men_tshirts", title: "Футболки", emoji: "👕" },
-          { id: "men_tanks", title: "Майки", emoji: "🎽" },
-          { id: "men_sweaters", title: "Толстовки", emoji: "🧥" },
-          { id: "men_sweatshirts", title: "Свитшоты", emoji: "👔" },
-          { id: "men_hoodies", title: "Худи", emoji: "🧢" },
-          { id: "men_caps", title: "Кепки", emoji: "🧢" }
-        ]
-      },
-      {
-        id: "women",
-        title: "Женская одежда",
-        emoji: "👚",
-        note: "Футболки, худи, свитшоты",
-        subcategories: [
-          { id: "women_tshirts", title: "Футболки", emoji: "👚" },
-          { id: "women_tanks", title: "Майки", emoji: "🎽" },
-          { id: "women_sweaters", title: "Толстовки", emoji: "🧥" },
-          { id: "women_sweatshirts", title: "Свитшоты", emoji: "👔" },
-          { id: "women_hoodies", title: "Худи", emoji: "🧢" }
-        ]
-      },
-      {
-        id: "kids",
-        title: "Детская одежда",
-        emoji: "🧒",
-        note: "Детские футболки и худи",
-        subcategories: [
-          { id: "kids_tshirts", title: "Футболки", emoji: "👕" },
-          { id: "kids_tanks", title: "Майки", emoji: "🎽" },
-          { id: "kids_sweaters", title: "Толстовки", emoji: "🧥" },
-          { id: "kids_sweatshirts", title: "Свитшоты", emoji: "👔" },
-          { id: "kids_hoodies", title: "Худи", emoji: "🧢" },
-          { id: "kids_caps", title: "Кепки", emoji: "🧢" }
-        ]
-      },
-      {
-        id: "mugs",
-        title: "Кружки",
-        emoji: "☕",
-        note: "Кружки с принтами",
-        subcategories: [
-          { id: "mugs_classic", title: "Классические кружки", emoji: "☕" },
-          { id: "mugs_color", title: "Цветные кружки", emoji: "🎨" },
-          { id: "mugs_gift", title: "Подарочные кружки", emoji: "🎁" }
-        ]
-      },
-      {
-        id: "pillows",
-        title: "Подушки",
-        emoji: "🛏",
-        note: "Декоративные подушки",
-        subcategories: [
-          { id: "pillows_square", title: "Квадратные", emoji: "◻️" },
-          { id: "pillows_heart", title: "Сердце", emoji: "❤️" },
-          { id: "pillows_gift", title: "Подарочные", emoji: "🎁" }
-        ]
-      },
-      {
-        id: "bags",
-        title: "Сумки",
-        emoji: "👜",
-        note: "Шопперы и сумки",
-        subcategories: [
-          { id: "bags_shoppers", title: "Шопперы", emoji: "🛍" },
-          { id: "bags_tote", title: "Tote bags", emoji: "👜" },
-          { id: "bags_gift", title: "Подарочные сумки", emoji: "🎁" }
-        ]
-      }
-    ];
+function formatPrice(n){return Number(n || 0).toLocaleString("ru-RU")+" сўм";}
+function esc(s){return String(s ?? "").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));}
+function showBack(){backBtn.classList.toggle("show", stack.length>0);}
+function push(fn){stack.push(fn);showBack();}
+backBtn.onclick=()=>{const fn=stack.pop();showBack();fn?fn():renderSections();};
 
-    const products = [
-      {
-        id: 101,
-        subcategory: "men_tshirts",
-        title: "Мужская футболка с принтом",
-        category: "Мужская одежда / Футболки",
-        price: 99000,
-        description: "Базовая футболка. Можно выбрать готовый принт или заказать свой.",
-        img: "men_tshirt"
-      },
-      {
-        id: 102,
-        subcategory: "men_tanks",
-        title: "Мужская майка с принтом",
-        category: "Мужская одежда / Майки",
-        price: 89000,
-        description: "Лёгкая майка для лета, спорта и повседневной носки.",
-        img: "men_tank"
-      },
-      {
-        id: 103,
-        subcategory: "men_sweaters",
-        title: "Мужская толстовка с принтом",
-        category: "Мужская одежда / Толстовки",
-        price: 219000,
-        description: "Удобная толстовка с качественной печатью.",
-        img: "men_sweater"
-      },
-      {
-        id: 104,
-        subcategory: "men_sweatshirts",
-        title: "Мужской свитшот с принтом",
-        category: "Мужская одежда / Свитшоты",
-        price: 199000,
-        description: "Мягкий свитшот для стильного повседневного образа.",
-        img: "men_sweatshirt"
-      },
-      {
-        id: 105,
-        subcategory: "men_hoodies",
-        title: "Мужское худи с принтом",
-        category: "Мужская одежда / Худи",
-        price: 249000,
-        description: "Тёплое худи с индивидуальным или готовым принтом.",
-        img: "men_hoodie"
-      },
-      {
-        id: 106,
-        subcategory: "men_caps",
-        title: "Мужская кепка с принтом",
-        category: "Мужская одежда / Кепки",
-        price: 79000,
-        description: "Кепка с логотипом, текстом или авторским принтом.",
-        img: "men_cap"
-      },
-      {
-        id: 201,
-        subcategory: "women_tshirts",
-        title: "Женская футболка с принтом",
-        category: "Женская одежда / Футболки",
-        price: 99000,
-        description: "Женская футболка с готовым или индивидуальным дизайном.",
-        img: "women_tshirt"
-      },
-      {
-        id: 202,
-        subcategory: "women_hoodies",
-        title: "Женское худи с принтом",
-        category: "Женская одежда / Худи",
-        price: 249000,
-        description: "Комфортное худи с печатью для подарка или личного образа.",
-        img: "women_hoodie"
-      },
-      {
-        id: 301,
-        subcategory: "kids_tshirts",
-        title: "Детская футболка с принтом",
-        category: "Детская одежда / Футболки",
-        price: 79000,
-        description: "Яркая детская футболка с печатью.",
-        img: "kids_tshirt"
-      },
-      {
-        id: 302,
-        subcategory: "kids_hoodies",
-        title: "Детское худи с принтом",
-        category: "Детская одежда / Худи",
-        price: 189000,
-        description: "Детское худи с индивидуальным дизайном.",
-        img: "kids_hoodie"
-      },
-      {
-        id: 401,
-        subcategory: "mugs_classic",
-        title: "Классическая кружка с принтом",
-        category: "Кружки / Классические кружки",
-        price: 59000,
-        description: "Белая кружка с фото, текстом или авторским принтом.",
-        img: "classic_mug"
-      },
-      {
-        id: 501,
-        subcategory: "pillows_square",
-        title: "Квадратная подушка с принтом",
-        category: "Подушки / Квадратные",
-        price: 99000,
-        description: "Декоративная подушка с индивидуальной печатью.",
-        img: "square_pillow"
-      },
-      {
-        id: 601,
-        subcategory: "bags_shoppers",
-        title: "Шоппер с принтом",
-        category: "Сумки / Шопперы",
-        price: 89000,
-        description: "Тканевый шоппер с вашим дизайном или готовым принтом.",
-        img: "shopper_bag"
-      }
-    ];
+function productCountByCats(cats){
+  return products.filter(p => cats.includes(p.category)).length;
+}
 
-    const content = document.getElementById("content");
-    const backBtn = document.getElementById("backBtn");
-    const historyStack = [];
+function renderSections(){
+  stack.length=0;showBack();
+  content.innerHTML = `
+    <h1>Каталог</h1>
+    <div class="hint">Выберите раздел. Товары загружены из экспортного файла Wondershop.</div>
+    <input class="search" placeholder="Поиск товара..." oninput="renderSearch(this.value)">
+    <div class="grid">
+      ${catalog.map(s=>`
+        <div class="tile" onclick="renderSubcategories('${esc(s.id)}')">
+          <div class="emoji">${s.emoji}</div>
+          <div class="tile-title">${esc(s.title)}</div>
+          <div class="tile-note">${productCountByCats(s.subcategories)} товаров</div>
+        </div>`).join("")}
+    </div>`;
+}
 
-    function formatPrice(price) {
-      return price.toLocaleString("ru-RU") + " сум";
-    }
+function renderSearch(query){
+  query = query.trim().toLowerCase();
+  if(!query){renderSections();return;}
+  const found = products.filter(p =>
+    String(p.name).toLowerCase().includes(query) ||
+    String(p.category).toLowerCase().includes(query) ||
+    String(p.article).toLowerCase().includes(query)
+  );
+  renderProductList(found, "Поиск", `Найдено: ${found.length}`, () => renderSections(), 1);
+}
 
-    function pushScreen(fn) {
-      historyStack.push(fn);
-      backBtn.classList.add("show");
-    }
+function renderSubcategories(sectionId){
+  const section = catalog.find(s=>s.id===sectionId);
+  push(renderSections);
+  content.innerHTML = `
+    <h1>${esc(section.title)}</h1>
+    <div class="hint">Выберите подраздел.</div>
+    <div class="grid">
+      ${section.subcategories.map(cat=>{
+        const count = products.filter(p=>p.category===cat).length;
+        return `<div class="tile" onclick="renderCategory('${esc(cat)}','${esc(sectionId)}')">
+          <div class="emoji">•</div>
+          <div class="tile-title">${esc(cat)}</div>
+          <div class="tile-note">${count} товаров →</div>
+        </div>`;
+      }).join("")}
+    </div>`;
+}
 
-    function goBack() {
-      historyStack.pop();
-      const prev = historyStack.pop();
-      if (prev) {
-        prev();
-      } else {
-        renderMainCategories();
-      }
-    }
+function renderCategory(category, sectionId, page=1){
+  push(()=>renderSubcategories(sectionId));
+  const list = products.filter(p=>p.category===category);
+  renderProductList(list, category, `Товаров: ${list.length}`, () => renderCategory(category, sectionId, page), page, category, sectionId);
+}
 
-    backBtn.addEventListener("click", goBack);
+function renderProductList(list, title, note, rerender, page=1, category="", sectionId=""){
+  currentPage = page;
+  const pages = Math.max(1, Math.ceil(list.length/perPage));
+  const start = (page-1)*perPage;
+  const shown = list.slice(start,start+perPage);
 
-    function renderMainCategories() {
-      historyStack.length = 0;
-      backBtn.classList.remove("show");
+  if(!shown.length){
+    content.innerHTML = `<h1>${esc(title)}</h1><div class="empty">Товары не найдены.</div>`;
+    return;
+  }
 
-      content.innerHTML = `
-        <div class="screen-title">Каталог</div>
-        <div class="grid">
-          ${catalog.map(section => `
-            <div class="card" onclick="renderSubcategories('${section.id}')">
-              <div>
-                <div class="emoji">${section.emoji}</div>
-                <div class="card-title">${section.title}</div>
-                <div class="card-note">${section.note}</div>
-              </div>
-            </div>
-          `).join("")}
-        </div>
-      `;
-    }
-
-    function renderSubcategories(sectionId) {
-      pushScreen(renderMainCategories);
-
-      const section = catalog.find(item => item.id === sectionId);
-
-      content.innerHTML = `
-        <div class="screen-title">${section.title}</div>
-        <div class="grid">
-          ${section.subcategories.map(sub => `
-            <div class="card" onclick="renderProducts('${sub.id}', '${section.id}')">
-              <div>
-                <div class="emoji">${sub.emoji}</div>
-                <div class="card-title">${sub.title}</div>
-                <div class="card-note">Смотреть товары →</div>
-              </div>
-            </div>
-          `).join("")}
-        </div>
-      `;
-    }
-
-    function renderProducts(subcategoryId, sectionId) {
-      pushScreen(() => renderSubcategories(sectionId));
-
-      const subcategoryProducts = products.filter(product => product.subcategory === subcategoryId);
-      const subcategory = catalog
-        .flatMap(section => section.subcategories)
-        .find(sub => sub.id === subcategoryId);
-
-      if (!subcategoryProducts.length) {
-        content.innerHTML = `
-          <div class="screen-title">${subcategory.title}</div>
-          <div class="empty">
-            В этом подразделе пока нет товаров.<br><br>
-            Можно заказать индивидуальный принт через менеджера.
+  content.innerHTML = `
+    <h1>${esc(title)}</h1>
+    <div class="hint">${esc(note)}${pages>1 ? ` · Страница ${page} из ${pages}` : ""}</div>
+    <div class="products">
+      ${shown.map(p=>`
+        <div class="product" onclick="renderDetail('${esc(p.id)}', ${JSON.stringify(category)}, ${JSON.stringify(sectionId)}, ${page})">
+          <div class="imgbox">${p.image ? `<img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy">` : `<div class="noimg">WONDERSHOP</div>`}</div>
+          <div class="body">
+            <div class="ptitle">${esc(p.name)}</div>
+            <div class="meta">${esc(p.category)}${p.article ? `<br>Артикул: ${esc(p.article)}` : ""}</div>
+            <div class="price">${formatPrice(p.price)}</div>
+            <button class="btn" onclick="event.stopPropagation(); renderDetail('${esc(p.id)}', ${JSON.stringify(category)}, ${JSON.stringify(sectionId)}, ${page})">Открыть товар</button>
           </div>
-        `;
-        return;
-      }
+        </div>`).join("")}
+    </div>
+    ${pages>1 ? `<div class="pager">
+      <button class="btn secondary" ${page<=1?"disabled":""} onclick="renderProductListByContext('${esc(title)}','${esc(category)}','${esc(sectionId)}',${page-1})">← Назад</button>
+      <button class="btn secondary" ${page>=pages?"disabled":""} onclick="renderProductListByContext('${esc(title)}','${esc(category)}','${esc(sectionId)}',${page+1})">Вперёд →</button>
+    </div>` : ""}`;
+}
 
-      content.innerHTML = `
-        <div class="screen-title">${subcategory.title}</div>
-        <div class="products">
-          ${subcategoryProducts.map(product => `
-            <div class="product">
-              <div class="product-img">WONDERSHOP</div>
-              <div class="product-body">
-                <div class="product-title">${product.title}</div>
-                <div class="product-meta">${product.description}</div>
-                <div class="price">${formatPrice(product.price)}</div>
-                <button class="choose-btn" onclick="sendProduct(${product.id})">
-                  ✓ Выбрать этот товар
-                </button>
-              </div>
-            </div>
-          `).join("")}
+function renderProductListByContext(title, category, sectionId, page){
+  if(category){
+    const list = products.filter(p=>p.category===category);
+    renderProductList(list, category, `Товаров: ${list.length}`, null, page, category, sectionId);
+  }
+}
+
+function renderDetail(id, category="", sectionId="", page=1){
+  const p = products.find(x=>String(x.id)===String(id));
+  push(()=>{
+    if(category) {
+      const list=products.filter(x=>x.category===category);
+      renderProductList(list, category, `Товаров: ${list.length}`, null, page, category, sectionId);
+    } else renderSections();
+  });
+
+  const colors = (p.colors || []).slice(0, 12).map(c=>`<span class="chip"><span class="color-dot" style="background:${esc(c.hex || "#fff")}"></span>${esc(c.name)}</span>`).join("");
+  const sizes = (p.sizes || []).slice(0, 16).map(s=>`<span class="chip">${esc(s)}</span>`).join("");
+
+  content.innerHTML = `
+    <div class="detail">
+      ${p.image ? `<img class="detail-img" src="${esc(p.image)}" alt="${esc(p.name)}">` : ""}
+      <div class="detail-body">
+        <div class="detail-title">${esc(p.name)}</div>
+        <div class="meta">
+          ${esc(p.category)}${p.article ? `<br>Артикул: ${esc(p.article)}` : ""}${p.material ? `<br>Материал: ${esc(p.material)}` : ""}
         </div>
-      `;
-    }
+        ${sizes ? `<div class="chips">${sizes}</div>` : ""}
+        ${colors ? `<div class="chips">${colors}</div>` : ""}
+        <div class="price">${formatPrice(p.price)}</div>
+        <button class="btn" onclick="sendProduct('${esc(p.id)}')">✓ Выбрать этот товар</button>
+        <button class="btn secondary" onclick="window.open('${esc(p.url)}','_blank')">Открыть на сайте</button>
+      </div>
+    </div>`;
+}
 
-    function sendProduct(productId) {
-      const product = products.find(item => item.id === productId);
+function sendProduct(id){
+  const p = products.find(x=>String(x.id)===String(id));
+  const payload = {
+    print_id:p.id,
+    print_name:p.name,
+    category:p.category,
+    article:p.article,
+    price:p.price,
+    img:p.image,
+    url:p.url
+  };
+  if(tg){tg.sendData(JSON.stringify(payload));}
+  else{alert("Выбран товар: "+p.name);}
+}
 
-      const payload = {
-        print_id: product.id,
-        print_name: product.title,
-        category: product.category,
-        price: product.price,
-        img: product.img
-      };
-
-      if (tg) {
-        tg.sendData(JSON.stringify(payload));
-      } else {
-        alert("Товар выбран: " + product.title);
-      }
-    }
-
-    renderMainCategories();
-  </script>
+fetch("./products.json")
+  .then(r=>r.json())
+  .then(data=>{
+    catalog = data.catalog || [];
+    products = data.products || [];
+    renderSections();
+  })
+  .catch(err=>{
+    console.error(err);
+    content.innerHTML = `<div class="empty">Не удалось загрузить products.json</div>`;
+  });
+</script>
 </body>
 </html>
