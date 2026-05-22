@@ -123,11 +123,20 @@ function selFromMo(){
   document.getElementById("bar").classList.add("on");
 }
 function send(){
-  if(!sel)return;
-  const data=JSON.stringify({action:"select_print",print_id:sel.id,print_name:sel.name,category:sel.category,price:sel.price,img:sel.img});
-  alert("tg exists: " + !!tg + " | initData: " + !!tg?.initData + " | data: " + data.substring(0,50));
-  if(tg&&tg.initData){tg.sendData(data);}
-  else{alert("Выбран: "+sel.name);}
+  if(!sel) return;
+  const data = JSON.stringify({
+    action: "select_print",
+    print_id: sel.id,
+    print_name: sel.name,
+    category: sel.category,
+    price: sel.price,
+    img: sel.img
+  });
+  if(tg && typeof tg.sendData === 'function'){
+    tg.sendData(data);
+  } else {
+    alert("Открой через Telegram-бота!");
+  }
 }
 render();
 </script>
