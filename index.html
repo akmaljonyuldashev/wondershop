@@ -135,6 +135,7 @@ const content = document.getElementById("content");
 const backBtn = document.getElementById("backBtn");
 const stack = [];
 let currentPage = 1;
+let listContext = {category:"", sectionId:"", page:1};
 const perPage = 24;
 
 function formatPrice(n){return Number(n || 0).toLocaleString("ru-RU")+" сўм";}
@@ -200,6 +201,7 @@ function renderCategory(category, sectionId, page=1){
 
 function renderProductList(list, title, note, rerender, page=1, category="", sectionId=""){
   currentPage = page;
+  listContext = {category, sectionId, page};
   const pages = Math.max(1, Math.ceil(list.length/perPage));
   const start = (page-1)*perPage;
   const shown = list.slice(start,start+perPage);
@@ -214,13 +216,13 @@ function renderProductList(list, title, note, rerender, page=1, category="", sec
     <div class="hint">${esc(note)}${pages>1 ? ` · Страница ${page} из ${pages}` : ""}</div>
     <div class="products">
       ${shown.map(p=>`
-        <div class="product" onclick="renderDetail('${esc(p.id)}', ${JSON.stringify(category)}, ${JSON.stringify(sectionId)}, ${page})">
+        <div class="product" onclick="renderDetailFromList('${esc(p.id)}')">
           <div class="imgbox">${p.image ? `<img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy">` : `<div class="noimg">WONDERSHOP</div>`}</div>
           <div class="body">
             <div class="ptitle">${esc(p.name)}</div>
             <div class="meta">${esc(p.category)}${p.article ? `<br>Артикул: ${esc(p.article)}` : ""}</div>
             <div class="price">${formatPrice(p.price)}</div>
-            <button class="btn" onclick="event.stopPropagation(); renderDetail('${esc(p.id)}', ${JSON.stringify(category)}, ${JSON.stringify(sectionId)}, ${page})">Открыть товар</button>
+            <button class="btn" onclick="event.stopPropagation(); renderDetailFromList('${esc(p.id)}')">Открыть товар</button>
           </div>
         </div>`).join("")}
     </div>
@@ -246,6 +248,10 @@ function defaultSize(p){
 
 function defaultColor(p){
   return (p.colors && p.colors.length) ? "" : "По умолчанию";
+}
+
+function renderDetailFromList(id){
+  renderDetail(id, listContext.category || "", listContext.sectionId || "", listContext.page || 1);
 }
 
 function renderDetail(id, category="", sectionId="", page=1){
