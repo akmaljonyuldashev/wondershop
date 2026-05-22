@@ -48,6 +48,72 @@
     .empty{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:20px;text-align:center;color:var(--muted);line-height:1.5}
     .pager{display:flex;gap:10px;margin:16px 0 0}
     .pager button{flex:1}
+
+    .option-title{font-size:14px;font-weight:950;margin:15px 0 8px}
+    .options{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+    .option{
+      border:1px solid var(--line);
+      background:#faf7f2;
+      border-radius:999px;
+      padding:9px 12px;
+      font-size:13px;
+      font-weight:850;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      min-height:38px;
+    }
+    .option.active{
+      background:#111;
+      color:#fff;
+      border-color:#111;
+    }
+    .option.active .color-dot{border-color:#fff}
+    .qty-box{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin:8px 0 16px;
+    }
+    .qty-btn{
+      width:42px;
+      height:42px;
+      border-radius:50%;
+      border:1px solid var(--line);
+      background:#fff;
+      font-size:22px;
+      font-weight:900;
+      cursor:pointer;
+    }
+    .qty-value{
+      min-width:48px;
+      text-align:center;
+      font-size:20px;
+      font-weight:950;
+    }
+    .summary{
+      background:#faf7f2;
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:13px;
+      font-size:14px;
+      line-height:1.55;
+      margin:12px 0 14px;
+    }
+    .error{
+      display:none;
+      background:#fff1f1;
+      border:1px solid #ffd1d1;
+      color:#a40000;
+      border-radius:14px;
+      padding:11px 12px;
+      font-size:13px;
+      font-weight:800;
+      margin:10px 0;
+    }
+    .error.show{display:block}
+
     @media(max-width:520px){.grid,.products{grid-template-columns:1fr}.imgbox{height:220px}.logo{font-size:21px}}
   </style>
 </head>
@@ -171,8 +237,26 @@ function renderProductListByContext(title, category, sectionId, page){
   }
 }
 
+
+let selectedOptions = {};
+
+function defaultSize(p){
+  return (p.sizes && p.sizes.length) ? "" : "Стандарт";
+}
+
+function defaultColor(p){
+  return (p.colors && p.colors.length) ? "" : "По умолчанию";
+}
+
 function renderDetail(id, category="", sectionId="", page=1){
   const p = products.find(x=>String(x.id)===String(id));
+  selectedOptions[p.id] = {
+    size: defaultSize(p),
+    color: defaultColor(p),
+    colorHex: "",
+    qty: 1
+  };
+
   push(()=>{
     if(category) {
       const list=products.filter(x=>x.category===category);
@@ -180,8 +264,14 @@ function renderDetail(id, category="", sectionId="", page=1){
     } else renderSections();
   });
 
-  const colors = (p.colors || []).slice(0, 12).map(c=>`<span class="chip"><span class="color-dot" style="background:${esc(c.hex || "#fff")}"></span>${esc(c.name)}</span>`).join("");
-  const sizes = (p.sizes || []).slice(0, 16).map(s=>`<span class="chip">${esc(s)}</span>`).join("");
+  const colors = (p.colors || []).map((c, i)=>`
+    <button class="option" id="color_${esc(p.id)}_${i}" onclick="chooseColor('${esc(p.id)}', ${i})">
+      <span class="color-dot" style="background:${esc(c.hex || "#fff")}"></span>${esc(c.name)}
+    </button>`).join("");
+
+  const sizes = (p.sizes || []).map((s, i)=>`
+    <button class="option" id="size_${esc(p.id)}_${i}" onclick="chooseSize('${esc(p.id)}', ${i})">${esc(s)}</button>
+  `).join("");
 
   content.innerHTML = `
     <div class="detail">
@@ -191,28 +281,143 @@ function renderDetail(id, category="", sectionId="", page=1){
         <div class="meta">
           ${esc(p.category)}${p.article ? `<br>Артикул: ${esc(p.article)}` : ""}${p.material ? `<br>Материал: ${esc(p.material)}` : ""}
         </div>
-        ${sizes ? `<div class="chips">${sizes}</div>` : ""}
-        ${colors ? `<div class="chips">${colors}</div>` : ""}
+
+        ${sizes ? `
+          <div class="option-title">Выберите размер</div>
+          <div class="options">${sizes}</div>
+        ` : `
+          <div class="option-title">Размер</div>
+          <div class="options"><button class="option active">Стандарт</button></div>
+        `}
+
+        ${colors ? `
+          <div class="option-title">Выберите цвет</div>
+          <div class="options">${colors}</div>
+        ` : `
+          <div class="option-title">Цвет</div>
+          <div class="options"><button class="option active">По умолчанию</button></div>
+        `}
+
+        <div class="option-title">Количество</div>
+        <div class="qty-box">
+          <button class="qty-btn" onclick="changeQty('${esc(p.id)}', -1)">−</button>
+          <div class="qty-value" id="qty_${esc(p.id)}">1</div>
+          <button class="qty-btn" onclick="changeQty('${esc(p.id)}', 1)">+</button>
+        </div>
+
         <div class="price">${formatPrice(p.price)}</div>
-        <button class="btn" onclick="sendProduct('${esc(p.id)}')">✓ Выбрать этот товар</button>
+
+        <div class="summary" id="summary_${esc(p.id)}"></div>
+        <div class="error" id="error_${esc(p.id)}">Пожалуйста, выберите размер и цвет.</div>
+
+        <button class="btn" onclick="sendProduct('${esc(p.id)}')">✓ Отправить заказ менеджеру</button>
         <button class="btn secondary" onclick="window.open('${esc(p.url)}','_blank')">Открыть на сайте</button>
       </div>
     </div>`;
+
+  updateSummary(p.id);
+}
+
+function chooseSize(productId, index){
+  const p = products.find(x=>String(x.id)===String(productId));
+  const value = p.sizes[index];
+  selectedOptions[p.id].size = value;
+
+  (p.sizes || []).forEach((_, i)=>{
+    const el = document.getElementById(`size_${p.id}_${i}`);
+    if(el) el.classList.toggle("active", i === index);
+  });
+
+  hideError(p.id);
+  updateSummary(p.id);
+}
+
+function chooseColor(productId, index){
+  const p = products.find(x=>String(x.id)===String(productId));
+  const c = p.colors[index];
+  selectedOptions[p.id].color = c.name || "По умолчанию";
+  selectedOptions[p.id].colorHex = c.hex || "";
+
+  (p.colors || []).forEach((_, i)=>{
+    const el = document.getElementById(`color_${p.id}_${i}`);
+    if(el) el.classList.toggle("active", i === index);
+  });
+
+  hideError(p.id);
+  updateSummary(p.id);
+}
+
+function changeQty(productId, delta){
+  const p = products.find(x=>String(x.id)===String(productId));
+  const current = selectedOptions[p.id]?.qty || 1;
+  const next = Math.max(1, Math.min(99, current + delta));
+  selectedOptions[p.id].qty = next;
+
+  const el = document.getElementById(`qty_${p.id}`);
+  if(el) el.textContent = next;
+
+  updateSummary(p.id);
+}
+
+function updateSummary(productId){
+  const p = products.find(x=>String(x.id)===String(productId));
+  const o = selectedOptions[p.id];
+  const total = Number(p.price || 0) * Number(o.qty || 1);
+  const summary = document.getElementById(`summary_${p.id}`);
+
+  if(summary){
+    summary.innerHTML = `
+      <b>Ваш выбор:</b><br>
+      Размер: ${esc(o.size || "не выбран")}<br>
+      Цвет: ${esc(o.color || "не выбран")}<br>
+      Количество: ${esc(o.qty)}<br>
+      Итого: <b>${formatPrice(total)}</b>
+    `;
+  }
+}
+
+function showError(productId){
+  const el = document.getElementById(`error_${productId}`);
+  if(el) el.classList.add("show");
+}
+
+function hideError(productId){
+  const el = document.getElementById(`error_${productId}`);
+  if(el) el.classList.remove("show");
 }
 
 function sendProduct(id){
   const p = products.find(x=>String(x.id)===String(id));
+  const o = selectedOptions[p.id] || {};
+
+  const hasSizes = p.sizes && p.sizes.length;
+  const hasColors = p.colors && p.colors.length;
+
+  if ((hasSizes && !o.size) || (hasColors && !o.color)) {
+    showError(p.id);
+    return;
+  }
+
+  const qty = Number(o.qty || 1);
+  const total = Number(p.price || 0) * qty;
+
   const payload = {
     print_id:p.id,
     print_name:p.name,
     category:p.category,
     article:p.article,
     price:p.price,
+    size:o.size || "Стандарт",
+    color:o.color || "По умолчанию",
+    color_hex:o.colorHex || "",
+    quantity:qty,
+    total:total,
     img:p.image,
     url:p.url
   };
+
   if(tg){tg.sendData(JSON.stringify(payload));}
-  else{alert("Выбран товар: "+p.name);}
+  else{alert("Выбран товар: "+p.name+" / "+payload.size+" / "+payload.color+" / "+qty+" шт.");}
 }
 
 fetch("./products.json")
