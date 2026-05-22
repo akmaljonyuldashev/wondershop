@@ -3,31 +3,35 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Wondershop Catalog</title>
+  <title>Wondershop Mini Shop</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root{
       --bg:#f6f2ec;--card:#fff;--text:#151515;--muted:#777;--line:#e7dfd3;
-      --black:#111;--radius:22px;--shadow:0 12px 36px rgba(0,0,0,.08);
+      --black:#111;--danger:#ad1111;--ok:#147a35;--radius:22px;--shadow:0 12px 36px rgba(0,0,0,.08);
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--text)}
-    .app{max-width:820px;margin:0 auto;padding:18px 14px 36px}
-    .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
-    .logo{font-size:24px;font-weight:950;letter-spacing:.08em}
-    .tag{font-size:13px;color:var(--muted);margin-top:3px}
-    .back{display:none;border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 13px;font-weight:800;cursor:pointer}
-    .back.show{display:block}
+    .app{max-width:900px;margin:0 auto;padding:14px 14px 92px}
+    .top{position:sticky;top:0;z-index:20;background:rgba(246,242,236,.94);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0 12px;border-bottom:1px solid rgba(231,223,211,.65)}
+    .logo{font-size:23px;font-weight:950;letter-spacing:.08em}
+    .tag{font-size:13px;color:var(--muted);margin-top:2px}
+    .top-actions{display:flex;gap:8px;align-items:center}
+    .back,.cart-top{border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 12px;font-weight:850;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.04)}
+    .back{display:none}.back.show{display:block}
+    .cart-top{position:relative}
+    .badge{position:absolute;right:-4px;top:-6px;background:#111;color:#fff;min-width:20px;height:20px;border-radius:50%;font-size:11px;display:flex;align-items:center;justify-content:center;padding:0 5px}
     h1{font-size:23px;margin:18px 0 10px}
     .hint{font-size:14px;color:var(--muted);line-height:1.45;margin:0 0 14px}
     .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-    .tile{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:17px;min-height:108px;cursor:pointer;transition:.15s ease}
-    .tile:active,.product:active{transform:scale(.985)}
+    .tile,.product,.panel{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .tile{padding:17px;min-height:108px;cursor:pointer;transition:.15s ease}
+    .tile:active,.product:active,.btn:active{transform:scale(.985)}
     .emoji{font-size:31px;margin-bottom:12px}
     .tile-title{font-weight:950;font-size:17px;line-height:1.15}
     .tile-note{font-size:13px;color:var(--muted);margin-top:7px;line-height:1.35}
     .products{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
-    .product{background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);overflow:hidden;cursor:pointer}
+    .product{overflow:hidden;cursor:pointer}
     .imgbox{height:210px;background:#eee8df;display:flex;align-items:center;justify-content:center;overflow:hidden}
     .imgbox img{width:100%;height:100%;object-fit:contain;display:block}
     .noimg{font-weight:950;color:#999;letter-spacing:.08em}
@@ -35,125 +39,97 @@
     .ptitle{font-size:16px;font-weight:950;line-height:1.2;min-height:38px}
     .meta{font-size:12px;color:var(--muted);margin:8px 0;line-height:1.35}
     .price{font-size:17px;font-weight:950;margin:10px 0}
-    .btn{border:0;width:100%;border-radius:15px;background:#111;color:#fff;padding:13px 15px;font-weight:900;font-size:14px;cursor:pointer}
+    .old{font-size:13px;color:var(--muted);text-decoration:line-through;margin-left:8px;font-weight:700}
+    .btn{border:0;width:100%;border-radius:15px;background:#111;color:#fff;padding:13px 15px;font-weight:900;font-size:14px;cursor:pointer;transition:.12s ease}
     .secondary{background:#fff;color:#111;border:1px solid #111;margin-top:9px}
+    .danger{background:#fff;color:var(--danger);border:1px solid #ffd1d1;margin-top:9px}
+    .ok{background:var(--ok)}
     .detail{background:#fff;border:1px solid var(--line);border-radius:28px;box-shadow:var(--shadow);overflow:hidden}
     .detail-img{width:100%;max-height:440px;object-fit:contain;background:#eee8df;display:block}
     .detail-body{padding:18px}
     .detail-title{font-size:24px;font-weight:950;margin-bottom:8px;line-height:1.15}
-    .chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 14px}
-    .chip{border:1px solid var(--line);background:#faf7f2;border-radius:999px;padding:8px 11px;font-size:12px;font-weight:800}
-    .color-dot{width:12px;height:12px;border-radius:50%;display:inline-block;border:1px solid #bbb;margin-right:5px;vertical-align:-1px}
+    .chips,.options{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}
+    .chip,.option{border:1px solid var(--line);background:#faf7f2;border-radius:999px;padding:9px 12px;font-size:13px;font-weight:850;display:inline-flex;align-items:center;gap:6px}
+    .option{cursor:pointer;min-height:38px}.option.active{background:#111;color:#fff;border-color:#111}
+    .option.active .color-dot{border-color:#fff}
+    .color-dot{width:13px;height:13px;border-radius:50%;display:inline-block;border:1px solid #aaa}
+    .option-title{font-size:14px;font-weight:950;margin:15px 0 8px}
+    .qty-box{display:flex;align-items:center;gap:10px;margin:8px 0 16px}
+    .qty-btn{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:#fff;font-size:22px;font-weight:900;cursor:pointer}
+    .qty-value{min-width:48px;text-align:center;font-size:20px;font-weight:950}
+    .summary{background:#faf7f2;border:1px solid var(--line);border-radius:18px;padding:13px;font-size:14px;line-height:1.55;margin:12px 0 14px}
+    .error{display:none;background:#fff1f1;border:1px solid #ffd1d1;color:#a40000;border-radius:14px;padding:11px 12px;font-size:13px;font-weight:800;margin:10px 0}.error.show{display:block}
     .search{width:100%;border:1px solid var(--line);background:#fff;border-radius:16px;padding:13px 15px;font-size:15px;margin:0 0 14px;outline:none}
     .empty{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:20px;text-align:center;color:var(--muted);line-height:1.5}
-    .pager{display:flex;gap:10px;margin:16px 0 0}
-    .pager button{flex:1}
-
-    .option-title{font-size:14px;font-weight:950;margin:15px 0 8px}
-    .options{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
-    .option{
-      border:1px solid var(--line);
-      background:#faf7f2;
-      border-radius:999px;
-      padding:9px 12px;
-      font-size:13px;
-      font-weight:850;
-      cursor:pointer;
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      min-height:38px;
-    }
-    .option.active{
-      background:#111;
-      color:#fff;
-      border-color:#111;
-    }
-    .option.active .color-dot{border-color:#fff}
-    .qty-box{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      margin:8px 0 16px;
-    }
-    .qty-btn{
-      width:42px;
-      height:42px;
-      border-radius:50%;
-      border:1px solid var(--line);
-      background:#fff;
-      font-size:22px;
-      font-weight:900;
-      cursor:pointer;
-    }
-    .qty-value{
-      min-width:48px;
-      text-align:center;
-      font-size:20px;
-      font-weight:950;
-    }
-    .summary{
-      background:#faf7f2;
-      border:1px solid var(--line);
-      border-radius:18px;
-      padding:13px;
-      font-size:14px;
-      line-height:1.55;
-      margin:12px 0 14px;
-    }
-    .error{
-      display:none;
-      background:#fff1f1;
-      border:1px solid #ffd1d1;
-      color:#a40000;
-      border-radius:14px;
-      padding:11px 12px;
-      font-size:13px;
-      font-weight:800;
-      margin:10px 0;
-    }
-    .error.show{display:block}
-
-    @media(max-width:520px){.grid,.products{grid-template-columns:1fr}.imgbox{height:220px}.logo{font-size:21px}}
+    .pager{display:flex;gap:10px;margin:16px 0 0}.pager button{flex:1}
+    .cart-item{display:grid;grid-template-columns:74px 1fr;gap:12px;padding:12px;border-bottom:1px solid var(--line)}
+    .cart-item:last-child{border-bottom:0}
+    .cart-img{width:74px;height:74px;border-radius:15px;background:#eee8df;object-fit:contain}
+    .cart-name{font-weight:950;font-size:15px;margin-bottom:4px}
+    .cart-small{font-size:13px;color:var(--muted);line-height:1.45}
+    .cart-controls{display:flex;gap:8px;align-items:center;margin-top:8px}
+    .mini{width:auto;padding:8px 11px;border-radius:12px;font-size:13px}
+    .form{display:grid;gap:10px}
+    .input,.select,.textarea{width:100%;border:1px solid var(--line);background:#fff;border-radius:15px;padding:13px 14px;font-size:15px;outline:none}
+    .textarea{min-height:92px;resize:vertical;font-family:inherit}
+    .label{font-size:13px;font-weight:900;margin:6px 0 -3px}
+    .tabs{display:flex;gap:8px;margin:0 0 14px}
+    .tab{flex:1;border:1px solid var(--line);background:#fff;border-radius:999px;padding:11px 12px;font-weight:900;cursor:pointer}
+    .tab.active{background:#111;color:#fff;border-color:#111}
+    @media(max-width:560px){.grid,.products{grid-template-columns:1fr}.imgbox{height:220px}.logo{font-size:21px}.tag{display:none}.app{padding-bottom:94px}}
   </style>
 </head>
 <body>
 <div class="app">
   <div class="top">
     <div><div class="logo">WONDERSHOP</div><div class="tag">Одежда и товары с принтами</div></div>
-    <button class="back" id="backBtn">← Назад</button>
+    <div class="top-actions">
+      <button class="back" id="backBtn">← Назад</button>
+      <button class="cart-top" onclick="renderCart()">🛒 <span class="badge" id="cartBadge">0</span></button>
+    </div>
   </div>
   <main id="content"><div class="empty">Загрузка каталога...</div></main>
 </div>
+
 <script>
 const tg = window.Telegram?.WebApp;
 if (tg){tg.ready();tg.expand();}
 
 let catalog = [];
 let products = [];
+let currentPage = 1;
+let listContext = {category:"", sectionId:"", page:1, search:""};
+let selectedOptions = {};
+const perPage = 24;
 const content = document.getElementById("content");
 const backBtn = document.getElementById("backBtn");
+const cartBadge = document.getElementById("cartBadge");
 const stack = [];
-let currentPage = 1;
-let listContext = {category:"", sectionId:"", page:1};
-const perPage = 24;
 
-function formatPrice(n){return Number(n || 0).toLocaleString("ru-RU")+" сўм";}
 function esc(s){return String(s ?? "").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));}
+function formatPrice(n){return Number(n || 0).toLocaleString("ru-RU")+" сўм";}
+function getCart(){try{return JSON.parse(localStorage.getItem("wondershop_cart")||"[]")}catch(e){return []}}
+function setCart(cart){localStorage.setItem("wondershop_cart", JSON.stringify(cart));updateBadge();}
+function cartCount(){return getCart().reduce((s,i)=>s+Number(i.quantity||0),0)}
+function cartTotal(cart=getCart()){return cart.reduce((s,i)=>s+Number(i.price||0)*Number(i.quantity||1),0)}
+function updateBadge(){cartBadge.textContent = cartCount();}
 function showBack(){backBtn.classList.toggle("show", stack.length>0);}
 function push(fn){stack.push(fn);showBack();}
+function go(fn){fn();showBack();}
 backBtn.onclick=()=>{const fn=stack.pop();showBack();fn?fn():renderSections();};
 
-function productCountByCats(cats){
-  return products.filter(p => cats.includes(p.category)).length;
-}
+function productCountByCats(cats){return products.filter(p => cats.includes(p.category)).length;}
 
 function renderSections(){
-  stack.length=0;showBack();
+  stack.length=0;showBack();updateBadge();
   content.innerHTML = `
     <h1>Каталог</h1>
-    <div class="hint">Выберите раздел. Товары загружены из экспортного файла Wondershop.</div>
-    <input class="search" placeholder="Поиск товара..." oninput="renderSearch(this.value)">
+    <div class="hint">Выберите раздел или найдите товар по названию, артикулу, категории.</div>
+    <input class="search" placeholder="🔍 Поиск товара..." oninput="renderSearch(this.value)">
+    <div class="tabs">
+      <button class="tab active" onclick="renderSections()">Каталог</button>
+      <button class="tab" onclick="renderCustomPrint()">Свой принт</button>
+    </div>
     <div class="grid">
       ${catalog.map(s=>`
         <div class="tile" onclick="renderSubcategories('${esc(s.id)}')">
@@ -172,7 +148,9 @@ function renderSearch(query){
     String(p.category).toLowerCase().includes(query) ||
     String(p.article).toLowerCase().includes(query)
   );
-  renderProductList(found, "Поиск", `Найдено: ${found.length}`, () => renderSections(), 1);
+  stack.length=0;showBack();
+  listContext = {category:"", sectionId:"", page:1, search:query};
+  renderProductList(found, "Поиск", `Найдено: ${found.length}`, 1, "", "", query);
 }
 
 function renderSubcategories(sectionId){
@@ -196,12 +174,24 @@ function renderSubcategories(sectionId){
 function renderCategory(category, sectionId, page=1){
   push(()=>renderSubcategories(sectionId));
   const list = products.filter(p=>p.category===category);
-  renderProductList(list, category, `Товаров: ${list.length}`, () => renderCategory(category, sectionId, page), page, category, sectionId);
+  renderProductList(list, category, `Товаров: ${list.length}`, page, category, sectionId, "");
 }
 
-function renderProductList(list, title, note, rerender, page=1, category="", sectionId=""){
+function getListForContext(category, search){
+  if(search){
+    const q = search.toLowerCase();
+    return products.filter(p =>
+      String(p.name).toLowerCase().includes(q) ||
+      String(p.category).toLowerCase().includes(q) ||
+      String(p.article).toLowerCase().includes(q)
+    );
+  }
+  return products.filter(p=>p.category===category);
+}
+
+function renderProductList(list, title, note, page=1, category="", sectionId="", search=""){
   currentPage = page;
-  listContext = {category, sectionId, page};
+  listContext = {category, sectionId, page, search};
   const pages = Math.max(1, Math.ceil(list.length/perPage));
   const start = (page-1)*perPage;
   const shown = list.slice(start,start+perPage);
@@ -221,53 +211,38 @@ function renderProductList(list, title, note, rerender, page=1, category="", sec
           <div class="body">
             <div class="ptitle">${esc(p.name)}</div>
             <div class="meta">${esc(p.category)}${p.article ? `<br>Артикул: ${esc(p.article)}` : ""}</div>
-            <div class="price">${formatPrice(p.price)}</div>
+            <div class="price">${formatPrice(p.price)}${p.oldPrice ? `<span class="old">${formatPrice(p.oldPrice)}</span>` : ""}</div>
             <button class="btn" onclick="event.stopPropagation(); renderDetailFromList('${esc(p.id)}')">Открыть товар</button>
           </div>
         </div>`).join("")}
     </div>
     ${pages>1 ? `<div class="pager">
-      <button class="btn secondary" ${page<=1?"disabled":""} onclick="renderProductListByContext('${esc(title)}','${esc(category)}','${esc(sectionId)}',${page-1})">← Назад</button>
-      <button class="btn secondary" ${page>=pages?"disabled":""} onclick="renderProductListByContext('${esc(title)}','${esc(category)}','${esc(sectionId)}',${page+1})">Вперёд →</button>
+      <button class="btn secondary" ${page<=1?"disabled":""} onclick="renderProductListByContext(${page-1})">← Назад</button>
+      <button class="btn secondary" ${page>=pages?"disabled":""} onclick="renderProductListByContext(${page+1})">Вперёд →</button>
     </div>` : ""}`;
 }
 
-function renderProductListByContext(title, category, sectionId, page){
-  if(category){
-    const list = products.filter(p=>p.category===category);
-    renderProductList(list, category, `Товаров: ${list.length}`, null, page, category, sectionId);
-  }
+function renderProductListByContext(page){
+  const list = getListForContext(listContext.category, listContext.search);
+  const title = listContext.search ? "Поиск" : listContext.category;
+  const note = listContext.search ? `Найдено: ${list.length}` : `Товаров: ${list.length}`;
+  renderProductList(list, title, note, page, listContext.category, listContext.sectionId, listContext.search);
 }
 
-
-let selectedOptions = {};
-
-function defaultSize(p){
-  return (p.sizes && p.sizes.length) ? "" : "Стандарт";
-}
-
-function defaultColor(p){
-  return (p.colors && p.colors.length) ? "" : "По умолчанию";
-}
+function defaultSize(p){return (p.sizes && p.sizes.length) ? "" : "Стандарт";}
+function defaultColor(p){return (p.colors && p.colors.length) ? "" : "По умолчанию";}
 
 function renderDetailFromList(id){
-  renderDetail(id, listContext.category || "", listContext.sectionId || "", listContext.page || 1);
+  renderDetail(id, listContext.category || "", listContext.sectionId || "", listContext.page || 1, listContext.search || "");
 }
 
-function renderDetail(id, category="", sectionId="", page=1){
+function renderDetail(id, category="", sectionId="", page=1, search=""){
   const p = products.find(x=>String(x.id)===String(id));
-  selectedOptions[p.id] = {
-    size: defaultSize(p),
-    color: defaultColor(p),
-    colorHex: "",
-    qty: 1
-  };
+  selectedOptions[p.id] = {size:defaultSize(p), color:defaultColor(p), colorHex:"", qty:1};
 
   push(()=>{
-    if(category) {
-      const list=products.filter(x=>x.category===category);
-      renderProductList(list, category, `Товаров: ${list.length}`, null, page, category, sectionId);
-    } else renderSections();
+    if(search || category) renderProductListByContext(page);
+    else renderSections();
   });
 
   const colors = (p.colors || []).map((c, i)=>`
@@ -276,33 +251,17 @@ function renderDetail(id, category="", sectionId="", page=1){
     </button>`).join("");
 
   const sizes = (p.sizes || []).map((s, i)=>`
-    <button class="option" id="size_${esc(p.id)}_${i}" onclick="chooseSize('${esc(p.id)}', ${i})">${esc(s)}</button>
-  `).join("");
+    <button class="option" id="size_${esc(p.id)}_${i}" onclick="chooseSize('${esc(p.id)}', ${i})">${esc(s)}</button>`).join("");
 
   content.innerHTML = `
     <div class="detail">
       ${p.image ? `<img class="detail-img" src="${esc(p.image)}" alt="${esc(p.name)}">` : ""}
       <div class="detail-body">
         <div class="detail-title">${esc(p.name)}</div>
-        <div class="meta">
-          ${esc(p.category)}${p.article ? `<br>Артикул: ${esc(p.article)}` : ""}${p.material ? `<br>Материал: ${esc(p.material)}` : ""}
-        </div>
+        <div class="meta">${esc(p.category)}${p.article ? `<br>Артикул: ${esc(p.article)}` : ""}${p.material ? `<br>Материал: ${esc(p.material)}` : ""}</div>
 
-        ${sizes ? `
-          <div class="option-title">Выберите размер</div>
-          <div class="options">${sizes}</div>
-        ` : `
-          <div class="option-title">Размер</div>
-          <div class="options"><button class="option active">Стандарт</button></div>
-        `}
-
-        ${colors ? `
-          <div class="option-title">Выберите цвет</div>
-          <div class="options">${colors}</div>
-        ` : `
-          <div class="option-title">Цвет</div>
-          <div class="options"><button class="option active">По умолчанию</button></div>
-        `}
+        ${sizes ? `<div class="option-title">Выберите размер</div><div class="options">${sizes}</div>` : `<div class="option-title">Размер</div><div class="options"><button class="option active">Стандарт</button></div>`}
+        ${colors ? `<div class="option-title">Выберите цвет</div><div class="options">${colors}</div>` : `<div class="option-title">Цвет</div><div class="options"><button class="option active">По умолчанию</button></div>`}
 
         <div class="option-title">Количество</div>
         <div class="qty-box">
@@ -311,12 +270,12 @@ function renderDetail(id, category="", sectionId="", page=1){
           <button class="qty-btn" onclick="changeQty('${esc(p.id)}', 1)">+</button>
         </div>
 
-        <div class="price">${formatPrice(p.price)}</div>
-
+        <div class="price">${formatPrice(p.price)}${p.oldPrice ? `<span class="old">${formatPrice(p.oldPrice)}</span>` : ""}</div>
         <div class="summary" id="summary_${esc(p.id)}"></div>
         <div class="error" id="error_${esc(p.id)}">Пожалуйста, выберите размер и цвет.</div>
 
-        <button class="btn" onclick="sendProduct('${esc(p.id)}')">✓ Отправить заказ менеджеру</button>
+        <button class="btn" onclick="addToCart('${esc(p.id)}')">🛒 Добавить в корзину</button>
+        <button class="btn secondary" onclick="addToCart('${esc(p.id)}'); renderCart();">Добавить и перейти в корзину</button>
         <button class="btn secondary" onclick="window.open('${esc(p.url)}','_blank')">Открыть на сайте</button>
       </div>
     </div>`;
@@ -326,16 +285,9 @@ function renderDetail(id, category="", sectionId="", page=1){
 
 function chooseSize(productId, index){
   const p = products.find(x=>String(x.id)===String(productId));
-  const value = p.sizes[index];
-  selectedOptions[p.id].size = value;
-
-  (p.sizes || []).forEach((_, i)=>{
-    const el = document.getElementById(`size_${p.id}_${i}`);
-    if(el) el.classList.toggle("active", i === index);
-  });
-
-  hideError(p.id);
-  updateSummary(p.id);
+  selectedOptions[p.id].size = p.sizes[index];
+  (p.sizes || []).forEach((_, i)=>{const el=document.getElementById(`size_${p.id}_${i}`); if(el) el.classList.toggle("active", i===index);});
+  hideError(p.id);updateSummary(p.id);
 }
 
 function chooseColor(productId, index){
@@ -343,14 +295,8 @@ function chooseColor(productId, index){
   const c = p.colors[index];
   selectedOptions[p.id].color = c.name || "По умолчанию";
   selectedOptions[p.id].colorHex = c.hex || "";
-
-  (p.colors || []).forEach((_, i)=>{
-    const el = document.getElementById(`color_${p.id}_${i}`);
-    if(el) el.classList.toggle("active", i === index);
-  });
-
-  hideError(p.id);
-  updateSummary(p.id);
+  (p.colors || []).forEach((_, i)=>{const el=document.getElementById(`color_${p.id}_${i}`); if(el) el.classList.toggle("active", i===index);});
+  hideError(p.id);updateSummary(p.id);
 }
 
 function changeQty(productId, delta){
@@ -358,10 +304,7 @@ function changeQty(productId, delta){
   const current = selectedOptions[p.id]?.qty || 1;
   const next = Math.max(1, Math.min(99, current + delta));
   selectedOptions[p.id].qty = next;
-
-  const el = document.getElementById(`qty_${p.id}`);
-  if(el) el.textContent = next;
-
+  const el = document.getElementById(`qty_${p.id}`); if(el) el.textContent = next;
   updateSummary(p.id);
 }
 
@@ -370,73 +313,194 @@ function updateSummary(productId){
   const o = selectedOptions[p.id];
   const total = Number(p.price || 0) * Number(o.qty || 1);
   const summary = document.getElementById(`summary_${p.id}`);
-
   if(summary){
-    summary.innerHTML = `
-      <b>Ваш выбор:</b><br>
-      Размер: ${esc(o.size || "не выбран")}<br>
-      Цвет: ${esc(o.color || "не выбран")}<br>
-      Количество: ${esc(o.qty)}<br>
-      Итого: <b>${formatPrice(total)}</b>
-    `;
+    summary.innerHTML = `<b>Ваш выбор:</b><br>Размер: ${esc(o.size || "не выбран")}<br>Цвет: ${esc(o.color || "не выбран")}<br>Количество: ${esc(o.qty)}<br>Итого: <b>${formatPrice(total)}</b>`;
   }
 }
 
-function showError(productId){
-  const el = document.getElementById(`error_${productId}`);
-  if(el) el.classList.add("show");
-}
+function showError(productId){const el=document.getElementById(`error_${productId}`); if(el) el.classList.add("show");}
+function hideError(productId){const el=document.getElementById(`error_${productId}`); if(el) el.classList.remove("show");}
 
-function hideError(productId){
-  const el = document.getElementById(`error_${productId}`);
-  if(el) el.classList.remove("show");
-}
-
-function sendProduct(id){
+function selectedPayload(id){
   const p = products.find(x=>String(x.id)===String(id));
   const o = selectedOptions[p.id] || {};
-
   const hasSizes = p.sizes && p.sizes.length;
   const hasColors = p.colors && p.colors.length;
+  if ((hasSizes && !o.size) || (hasColors && !o.color)) {showError(p.id); return null;}
+  const qty = Number(o.qty || 1);
+  return {
+    id:p.id,name:p.name,category:p.category,article:p.article,price:Number(p.price||0),
+    size:o.size || "Стандарт",color:o.color || "По умолчанию",color_hex:o.colorHex || "",
+    quantity:qty,total:Number(p.price||0)*qty,img:p.image,url:p.url
+  };
+}
 
-  if ((hasSizes && !o.size) || (hasColors && !o.color)) {
-    showError(p.id);
+function cartKey(item){return [item.id,item.size,item.color].join("|");}
+
+function addToCart(id){
+  const item = selectedPayload(id);
+  if(!item) return;
+  let cart = getCart();
+  const key = cartKey(item);
+  const existing = cart.find(x=>cartKey(x)===key);
+  if(existing){
+    existing.quantity = Number(existing.quantity || 0) + Number(item.quantity || 1);
+    existing.total = existing.quantity * Number(existing.price || 0);
+  } else {
+    cart.push(item);
+  }
+  setCart(cart);
+  tg?.HapticFeedback?.notificationOccurred?.("success");
+  const p = products.find(x=>String(x.id)===String(id));
+  const summary = document.getElementById(`summary_${p.id}`);
+  if(summary) summary.innerHTML += `<br><b style="color:var(--ok)">Добавлено в корзину.</b>`;
+}
+
+function renderCart(){
+  push(renderSections);
+  updateBadge();
+  const cart = getCart();
+  if(!cart.length){
+    content.innerHTML = `<h1>Корзина</h1><div class="empty">Корзина пока пустая.</div><button class="btn secondary" onclick="renderSections()">Вернуться в каталог</button>`;
     return;
   }
+  content.innerHTML = `
+    <h1>Корзина</h1>
+    <div class="panel">
+      ${cart.map((item,idx)=>`
+        <div class="cart-item">
+          ${item.img ? `<img class="cart-img" src="${esc(item.img)}" alt="${esc(item.name)}">` : `<div class="cart-img"></div>`}
+          <div>
+            <div class="cart-name">${esc(item.name)}</div>
+            <div class="cart-small">${esc(item.category)}<br>Размер: ${esc(item.size)} · Цвет: ${esc(item.color)}<br>${formatPrice(item.price)} × ${item.quantity} = <b>${formatPrice(item.price*item.quantity)}</b></div>
+            <div class="cart-controls">
+              <button class="btn mini secondary" onclick="changeCartQty(${idx},-1)">−</button>
+              <b>${item.quantity}</b>
+              <button class="btn mini secondary" onclick="changeCartQty(${idx},1)">+</button>
+              <button class="btn mini danger" onclick="removeCartItem(${idx})">Удалить</button>
+            </div>
+          </div>
+        </div>`).join("")}
+    </div>
+    <div class="summary"><b>Итого:</b> ${formatPrice(cartTotal(cart))}</div>
+    <button class="btn" onclick="renderCheckout()">✅ Оформить заказ</button>
+    <button class="btn secondary" onclick="renderSections()">Продолжить покупки</button>
+    <button class="btn danger" onclick="clearCart()">Очистить корзину</button>`;
+}
 
-  const qty = Number(o.qty || 1);
-  const total = Number(p.price || 0) * qty;
+function changeCartQty(index,delta){
+  let cart=getCart();
+  cart[index].quantity=Math.max(1, Math.min(99, Number(cart[index].quantity||1)+delta));
+  cart[index].total=cart[index].quantity*Number(cart[index].price||0);
+  setCart(cart);renderCart();
+}
 
-  const payload = {
-    print_id:p.id,
-    print_name:p.name,
-    category:p.category,
-    article:p.article,
-    price:p.price,
-    size:o.size || "Стандарт",
-    color:o.color || "По умолчанию",
-    color_hex:o.colorHex || "",
-    quantity:qty,
-    total:total,
-    img:p.image,
-    url:p.url
+function removeCartItem(index){
+  let cart=getCart();cart.splice(index,1);setCart(cart);renderCart();
+}
+
+function clearCart(){
+  if(confirm("Очистить корзину?")){setCart([]);renderCart();}
+}
+
+function renderCheckout(){
+  push(renderCart);
+  const cart=getCart();
+  if(!cart.length){renderCart();return;}
+  content.innerHTML=`
+    <h1>Оформление заказа</h1>
+    <div class="summary"><b>В корзине:</b> ${cartCount()} шт.<br><b>Итого:</b> ${formatPrice(cartTotal(cart))}</div>
+    <div class="form">
+      <div class="label">Имя</div>
+      <input class="input" id="customerName" placeholder="Ваше имя">
+      <div class="label">Телефон</div>
+      <input class="input" id="customerPhone" placeholder="+998 __ ___ __ __" inputmode="tel">
+      <div class="label">Город</div>
+      <input class="input" id="customerCity" placeholder="Например: Ташкент">
+      <div class="label">Адрес доставки</div>
+      <textarea class="textarea" id="customerAddress" placeholder="Улица, дом, ориентир"></textarea>
+      <div class="label">Способ оплаты</div>
+      <select class="select" id="paymentMethod">
+        <option value="Наличные">Наличные</option>
+        <option value="Терминал">Терминал</option>
+        <option value="Click">Click</option>
+        <option value="Payme">Payme</option>
+      </select>
+      <div class="label">Комментарий</div>
+      <textarea class="textarea" id="customerComment" placeholder="Комментарий к заказу, удобное время связи"></textarea>
+      <div class="error" id="checkoutError">Заполните имя, телефон, город и адрес.</div>
+      <button class="btn ok" onclick="sendOrder()">📨 Отправить заказ</button>
+    </div>`;
+}
+
+function v(id){return document.getElementById(id)?.value?.trim() || ""}
+
+function sendOrder(){
+  const name=v("customerName"), phone=v("customerPhone"), city=v("customerCity"), address=v("customerAddress");
+  if(!name || !phone || !city || !address){
+    document.getElementById("checkoutError").classList.add("show");return;
+  }
+  const payload={
+    type:"order",
+    order_id:"WS-"+Date.now(),
+    customer:{name,phone,city,address,payment:v("paymentMethod"),comment:v("customerComment")},
+    items:getCart(),
+    total:cartTotal()
   };
-
   if(tg){tg.sendData(JSON.stringify(payload));}
-  else{alert("Выбран товар: "+p.name+" / "+payload.size+" / "+payload.color+" / "+qty+" шт.");}
+  else{alert("Заказ отправлен: "+payload.order_id);}
+  setCart([]);
+}
+
+function renderCustomPrint(){
+  stack.length=0;showBack();
+  content.innerHTML=`
+    <h1>Заказать свой принт</h1>
+    <div class="hint">Заполните заявку. После отправки менеджер свяжется с вами и попросит отправить изображение/макет в Telegram.</div>
+    <div class="form">
+      <div class="label">На каком товаре печатать?</div>
+      <select class="select" id="cpProduct">
+        <option>Футболка</option><option>Майка</option><option>Толстовка</option><option>Свитшот</option><option>Худи</option><option>Кепка</option><option>Кружка</option><option>Подушка</option><option>Сумка</option>
+      </select>
+      <div class="label">Размер</div>
+      <input class="input" id="cpSize" placeholder="Например: M, XL, стандарт">
+      <div class="label">Цвет товара</div>
+      <input class="input" id="cpColor" placeholder="Например: белый, черный">
+      <div class="label">Количество</div>
+      <input class="input" id="cpQty" value="1" inputmode="numeric">
+      <div class="label">Описание принта</div>
+      <textarea class="textarea" id="cpIdea" placeholder="Текст, идея, стиль, где разместить принт"></textarea>
+      <div class="label">Имя</div>
+      <input class="input" id="cpName" placeholder="Ваше имя">
+      <div class="label">Телефон</div>
+      <input class="input" id="cpPhone" placeholder="+998 __ ___ __ __" inputmode="tel">
+      <div class="error" id="customError">Заполните телефон и описание принта.</div>
+      <button class="btn ok" onclick="sendCustomPrint()">🎨 Отправить заявку</button>
+      <button class="btn secondary" onclick="renderSections()">Вернуться в каталог</button>
+    </div>`;
+}
+
+function sendCustomPrint(){
+  const phone=v("cpPhone"), idea=v("cpIdea");
+  if(!phone || !idea){document.getElementById("customError").classList.add("show");return;}
+  const payload={
+    type:"custom_print",
+    request_id:"CP-"+Date.now(),
+    product:v("cpProduct"),
+    size:v("cpSize") || "не указан",
+    color:v("cpColor") || "не указан",
+    quantity:Number(v("cpQty") || 1),
+    idea,
+    customer:{name:v("cpName") || "не указано", phone}
+  };
+  if(tg){tg.sendData(JSON.stringify(payload));}
+  else{alert("Заявка отправлена: "+payload.request_id);}
 }
 
 fetch("./products.json")
   .then(r=>r.json())
-  .then(data=>{
-    catalog = data.catalog || [];
-    products = data.products || [];
-    renderSections();
-  })
-  .catch(err=>{
-    console.error(err);
-    content.innerHTML = `<div class="empty">Не удалось загрузить products.json</div>`;
-  });
+  .then(data=>{catalog=data.catalog||[];products=data.products||[];updateBadge();renderSections();})
+  .catch(err=>{console.error(err);content.innerHTML=`<div class="empty">Не удалось загрузить products.json</div>`;});
 </script>
 </body>
 </html>
