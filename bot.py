@@ -40,6 +40,13 @@ if not ADMIN_ID:
     raise RuntimeError("ADMIN_ID не найден. Добавьте ADMIN_ID в переменные окружения.")
 
 
+def format_price(value):
+    try:
+        return f"{int(value):,}".replace(",", " ") + " сум"
+    except (TypeError, ValueError):
+        return str(value or "—")
+
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = ReplyKeyboardMarkup(
         [
@@ -51,15 +58,15 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(
         "👋 Добро пожаловать в Wondershop!\n\n"
-        "Нажмите кнопку ниже, чтобы открыть каталог и выбрать принт.",
+        "Нажмите кнопку ниже, чтобы открыть каталог и выбрать товар.",
         reply_markup=keyboard,
     )
 
 
 async def manager_contact(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "📞 Напишите нам в Telegram или оставьте заявку через каталог.\n\n"
-        "Менеджер свяжется с вами для уточнения размера, цвета, доставки и оплаты."
+        "📞 Напишите нам или оставьте заявку через каталог.\n\n"
+        "Менеджер свяжется с вами для уточнения доставки и оплаты."
     )
 
 
@@ -80,37 +87,49 @@ async def handle_webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await update.message.reply_text("Ошибка данных. Попробуйте выбрать товар ещё раз.")
         return
 
-    print_id = safe_get(data, "print_id")
-    print_name = safe_get(data, "print_name")
+    product_id = safe_get(data, "print_id")
+    product_name = safe_get(data, "print_name")
     category = safe_get(data, "category")
+    article = safe_get(data, "article")
     price = safe_get(data, "price", 0)
+    size = safe_get(data, "size")
+    color = safe_get(data, "color")
+    color_hex = safe_get(data, "color_hex")
+    quantity = safe_get(data, "quantity", 1)
+    total = safe_get(data, "total", price)
     img = safe_get(data, "img")
+    url = safe_get(data, "url")
 
-    try:
-        price_int = int(price)
-        price_text = f"{price_int:,}".replace(",", " ") + " сум"
-    except (TypeError, ValueError):
-        price_text = str(price)
-
-    await update.message.reply_text(
-        f"✅ Принт выбран!\n\n"
-        f"🖼 {escape(str(print_name))}\n"
+    client_text = (
+        "✅ Товар выбран!\n\n"
+        f"🛍 {escape(str(product_name))}\n"
         f"🏷 Категория: {escape(str(category))}\n"
-        f"💰 Цена: {escape(price_text)}\n\n"
-        f"Менеджер свяжется с вами для оформления заказа.",
-        reply_markup=ReplyKeyboardRemove(),
+        f"📦 Размер: {escape(str(size))}\n"
+        f"🎨 Цвет: {escape(str(color))}\n"
+        f"🔢 Количество: {escape(str(quantity))}\n"
+        f"💰 Итого: {escape(format_price(total))}\n\n"
+        "Менеджер Wondershop скоро свяжется с вами для подтверждения заказа."
     )
+
+    await update.message.reply_text(client_text, reply_markup=ReplyKeyboardRemove())
 
     admin_text = (
         "🆕 Новый заказ Wondershop\n\n"
         f"👤 Клиент: {escape(user.full_name)}\n"
         f"🔗 Username: @{escape(user.username) if user.username else 'нет'}\n"
         f"🆔 Telegram ID: {user.id}\n\n"
-        f"🖼 Принт: {escape(str(print_name))}\n"
-        f"ID: {escape(str(print_id))}\n"
+        f"🛍 Товар: {escape(str(product_name))}\n"
+        f"ID товара: {escape(str(product_id))}\n"
         f"Категория: {escape(str(category))}\n"
-        f"Цена: {escape(price_text)}\n"
-        f"Фото: {escape(str(img))}"
+        f"Артикул: {escape(str(article))}\n\n"
+        f"📦 Размер: {escape(str(size))}\n"
+        f"🎨 Цвет: {escape(str(color))}\n"
+        f"HEX: {escape(str(color_hex))}\n"
+        f"🔢 Количество: {escape(str(quantity))}\n\n"
+        f"Цена за 1 шт.: {escape(format_price(price))}\n"
+        f"Итого: {escape(format_price(total))}\n\n"
+        f"Фото: {escape(str(img))}\n"
+        f"Ссылка: {escape(str(url))}"
     )
 
     await context.bot.send_message(chat_id=ADMIN_ID, text=admin_text)
