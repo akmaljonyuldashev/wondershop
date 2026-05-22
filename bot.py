@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 from html import escape
 from urllib import request as urlrequest
+from urllib.error import URLError, HTTPError
 
 from dotenv import load_dotenv
 from telegram import (
@@ -55,9 +56,14 @@ def safe(value, default="—"):
     return value
 
 
-def post_to_google_sheets(payload: dict):
+def sheets_request(payload: dict) -> dict:
+    """
+    Отправляет данные в Google Apps Script.
+    Apps Script возвращает JSON, например:
+    {"ok": true, "order_id": "WS-0001"}
+    """
     if not GOOGLE_SHEETS_WEBHOOK_URL:
-        return
+        return {}
 
     try:
         data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -67,9 +73,18 @@ def post_to_google_sheets(payload: dict):
             headers={"Content-Type": "application/json"},
             method="POST",
         )
-        urlrequest.urlopen(req, timeout=8).read()
-    except Exception as exc:
+        response = urlrequest.urlopen(req, timeout=12).read().decode("utf-8")
+        try:
+            return json.loads(response)
+        except json.JSONDecodeError:
+            return {"raw": response}
+    except (URLError, HTTPError, TimeoutError, Exception) as exc:
         logging.warning("Google Sheets webhook failed: %s", exc)
+        return {"ok": False, "error": str(exc)}
+
+
+def fallback_order_id():
+    return "WS-" + datetime.now().strftime("%Y%m%d-%H%M%S")
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -119,6 +134,16 @@ def status_text(status: str):
     }.get(status, "Статус заказа обновлён.")
 
 
+def status_name(status: str):
+    return {
+        "accepted": "Принят",
+        "delivery": "В доставке",
+        "done": "Выполнен",
+        "cancelled": "Отменён",
+        "new": "Новый",
+    }.get(status, status)
+
+
 async def handle_webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
     raw = update.message.web_app_data.data
     user = update.effective_user
@@ -143,10 +168,23 @@ async def handle_webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 
 async def handle_order(update: Update, context: ContextTypes.DEFAULT_TYPE, data: dict, user):
-    order_id = safe(data.get("order_id"), f"WS-{datetime.now().strftime('%Y%m%d%H%M%S')}")
     customer = data.get("customer", {})
     items = data.get("items", [])
     total = data.get("total", 0)
+
+    sheet_payload = {
+        "type": "order",
+        "date": datetime.now().isoformat(),
+        "telegram_id": user.id,
+        "telegram_username": user.username or "",
+        "customer": customer,
+        "items": items,
+        "total": total,
+        "status": "new",
+    }
+
+    sheet_result = sheets_request(sheet_payload)
+    order_id = safe(sheet_result.get("order_id") if isinstance(sheet_result, dict) else None, fallback_order_id())
 
     items_text_lines = []
     for i, item in enumerate(items, 1):
@@ -162,9 +200,14 @@ async def handle_order(update: Update, context: ContextTypes.DEFAULT_TYPE, data:
             f"   Ссылка: {escape(str(safe(item.get('url'))))}"
         )
 
+    sheet_note = ""
+    if isinstance(sheet_result, dict) and sheet_result.get("ok") is False:
+        sheet_note = "\n\n⚠️ Google Sheets: не удалось записать заказ. Проверьте GOOGLE_SHEETS_WEBHOOK_URL и Apps Script."
+
     admin_text = (
         f"🆕 Новый заказ Wondershop\n\n"
         f"Номер: {escape(str(order_id))}\n"
+        f"Статус: Новый\n"
         f"Дата: {datetime.now().strftime('%d.%m.%Y %H:%M')}\n\n"
         f"👤 Клиент: {escape(str(safe(customer.get('name'))))}\n"
         f"Телефон: {escape(str(safe(customer.get('phone'))))}\n"
@@ -175,27 +218,14 @@ async def handle_order(update: Update, context: ContextTypes.DEFAULT_TYPE, data:
         f"Telegram: @{escape(user.username) if user.username else 'нет'}\n"
         f"Telegram ID: {user.id}\n\n"
         f"🛒 Товары:\n" + "\n\n".join(items_text_lines) +
-        f"\n\n💰 Итого: {escape(format_price(total))}"
+        f"\n\n💰 Итого: {escape(format_price(total))}" +
+        sheet_note
     )
 
     await context.bot.send_message(
         chat_id=ADMIN_ID,
         text=admin_text,
         reply_markup=build_status_keyboard(str(order_id), int(user.id)),
-    )
-
-    post_to_google_sheets(
-        {
-            "type": "order",
-            "order_id": str(order_id),
-            "date": datetime.now().isoformat(),
-            "telegram_id": user.id,
-            "telegram_username": user.username,
-            "customer": customer,
-            "items": items,
-            "total": total,
-            "status": "new",
-        }
     )
 
     await update.message.reply_text(
@@ -208,8 +238,19 @@ async def handle_order(update: Update, context: ContextTypes.DEFAULT_TYPE, data:
 
 
 async def handle_custom_print(update: Update, context: ContextTypes.DEFAULT_TYPE, data: dict, user):
-    request_id = safe(data.get("request_id"), f"CP-{datetime.now().strftime('%Y%m%d%H%M%S')}")
     customer = data.get("customer", {})
+
+    sheet_payload = {
+        "type": "custom_print",
+        "date": datetime.now().isoformat(),
+        "telegram_id": user.id,
+        "telegram_username": user.username or "",
+        "data": data,
+        "status": "new",
+    }
+
+    sheet_result = sheets_request(sheet_payload)
+    request_id = safe(sheet_result.get("request_id") if isinstance(sheet_result, dict) else None, "CP-" + datetime.now().strftime("%Y%m%d-%H%M%S"))
 
     admin_text = (
         "🎨 Новая заявка на свой принт\n\n"
@@ -226,18 +267,6 @@ async def handle_custom_print(update: Update, context: ContextTypes.DEFAULT_TYPE
     )
 
     await context.bot.send_message(chat_id=ADMIN_ID, text=admin_text)
-
-    post_to_google_sheets(
-        {
-            "type": "custom_print",
-            "request_id": str(request_id),
-            "date": datetime.now().isoformat(),
-            "telegram_id": user.id,
-            "telegram_username": user.username,
-            "data": data,
-            "status": "new",
-        }
-    )
 
     await update.message.reply_text(
         f"✅ Заявка на свой принт принята.\n\n"
@@ -274,15 +303,7 @@ async def status_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_reply_markup(reply_markup=None)
         return
 
-    message = f"{status_text(status)}\n\nНомер заказа: {escape(order_id)}"
-
-    try:
-        await context.bot.send_message(chat_id=customer_id, text=message)
-        await query.answer("Клиенту отправлено уведомление.")
-    except Exception:
-        await query.answer("Не удалось отправить клиенту уведомление.", show_alert=True)
-
-    post_to_google_sheets(
+    sheet_result = sheets_request(
         {
             "type": "status_update",
             "order_id": order_id,
@@ -291,6 +312,26 @@ async def status_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "customer_id": customer_id,
         }
     )
+
+    message = f"{status_text(status)}\n\nНомер заказа: {escape(order_id)}"
+
+    try:
+        await context.bot.send_message(chat_id=customer_id, text=message)
+        await query.answer("Клиенту отправлено уведомление.")
+    except Exception:
+        await query.answer("Не удалось отправить клиенту уведомление.", show_alert=True)
+
+    note = ""
+    if isinstance(sheet_result, dict) and sheet_result.get("ok") is False:
+        note = "\n\n⚠️ В таблице статус не обновился. Проверьте Apps Script."
+
+    try:
+        await query.edit_message_text(
+            query.message.text + f"\n\n🔄 Статус обновлён: {status_name(status)}" + note,
+            reply_markup=build_status_keyboard(order_id, customer_id),
+        )
+    except Exception:
+        pass
 
 
 def main():
