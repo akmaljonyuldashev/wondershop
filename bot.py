@@ -110,6 +110,41 @@ async def manager_contact(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = ReplyKeyboardMarkup(
+        [
+            [KeyboardButton("🛍 Открыть каталог", web_app=WebAppInfo(url=WEBAPP_URL))],
+            [KeyboardButton("📞 Связаться с менеджером")],
+        ],
+        resize_keyboard=True,
+    )
+
+    await update.message.reply_text(
+        "ℹ️ Помощь Wondershop\n\n"
+        "Что можно сделать в боте:\n"
+        "• открыть каталог товаров;\n"
+        "• выбрать размер, цвет и количество;\n"
+        "• добавить товары в корзину;\n"
+        "• оформить заказ с телефоном и адресом;\n"
+        "• заказать свой принт;\n"
+        "• получить уведомление о статусе заказа.\n\n"
+        "Команды:\n"
+        "/start — открыть каталог\n"
+        "/help — помощь\n"
+        "/contacts — контакты",
+        reply_markup=keyboard,
+    )
+
+
+async def contacts_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "📞 Контакты Wondershop\n\n"
+        "Сайт: www.wondershop.uz\n"
+        "Telegram: @wondershopuz_bot\n\n"
+        "Для заказа откройте каталог через кнопку ниже или напишите менеджеру."
+    )
+
+
 def build_status_keyboard(order_id: str, customer_id: int):
     return InlineKeyboardMarkup(
         [
@@ -337,6 +372,8 @@ async def status_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def main():
     app = Application.builder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("help", help_command))
+    app.add_handler(CommandHandler("contacts", contacts_command))
     app.add_handler(MessageHandler(filters.Regex("^📞 Связаться с менеджером$"), manager_contact))
     app.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_webapp_data))
     app.add_handler(CallbackQueryHandler(status_callback, pattern=r"^status\|"))
